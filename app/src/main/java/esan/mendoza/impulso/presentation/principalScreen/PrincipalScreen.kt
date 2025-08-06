@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
@@ -108,13 +109,13 @@ fun Buscador(
     var selectedOption by remember { mutableStateOf("Todas las categorias") }
     var selectedCategoryId by remember { mutableStateOf(-1) }
     var searchQuery by remember { mutableStateOf("") }
-    
+
     val options = listOf("Todas las categorias") + categories.map { it.nombre }
-    
+
     // Campo de búsqueda con ícono integrado
     OutlinedTextField(
         value = searchQuery,
-        onValueChange = { 
+        onValueChange = {
             searchQuery = it
             onSearch(it)
         },
@@ -135,82 +136,40 @@ fun Buscador(
             cursorColor = MaterialTheme.colorScheme.primary
         )
     )
-
-    // Botón desplegable
-    Box(
+    LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-
+            .padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Button(
-            onClick = { expanded = true },
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
-            )
-        ) {
-            Text(
-                text = selectedOption,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Icon(
-                imageVector = Icons.Filled.FilterList,
-                contentDescription = "Desplegar opciones",
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-
-        ) {
-            options.forEachIndexed { index, option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        selectedOption = option
-                        expanded = false
-                        // Si es "Todas las categorias" envía -1, si no envía el ID de la categoría
-                        if (index == 0) {
-                            selectedCategoryId = -1
-                            onCategorySelected(-1)
-                        } else {
-                            selectedCategoryId = categories[index - 1].id
-                            onCategorySelected(categories[index - 1].id)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            if (selectedOption == option) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                            else MaterialTheme.colorScheme.surface
-                        )
-
+        items(options.size) { index ->
+            val option = options[index]
+            val isSelected = selectedOption == option
+            Button(
+                onClick = {
+                    selectedOption = option
+                    if (index == 0) {
+                        selectedCategoryId = -1
+                        onCategorySelected(-1)
+                    } else {
+                        selectedCategoryId = categories[index - 1].id
+                        onCategorySelected(categories[index - 1].id)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text(
+                    text = option,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
     }
-            if (searchQuery.isNotEmpty() || selectedOption != "Todas") {
-                Text(
-                    text = "Buscando: \"$searchQuery\" en $selectedOption",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-        }
+}
+
+
