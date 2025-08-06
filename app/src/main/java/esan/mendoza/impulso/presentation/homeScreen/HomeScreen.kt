@@ -1,4 +1,5 @@
 package esan.mendoza.impulso.presentation.homeScreen
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -44,13 +45,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import esan.mendoza.impulso.presentation.principalScreen.Buscador
+import androidx.hilt.navigation.compose.hiltViewModel
 import esan.mendoza.impulso.presentation.principalScreen.PrincipalScreen
+import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
+import esan.mendoza.impulso.presentation.viewmodel.MainViewModel
+import esan.mendoza.impulso.presentation.viewmodel.RecursoViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    mainViewModel: MainViewModel = hiltViewModel(),
+    categoryViewModel: CategoryViewModel = hiltViewModel(),
+    recursoViewModel: RecursoViewModel = hiltViewModel()
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -101,7 +109,10 @@ fun HomeScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            PrincipalScreen()
+            PrincipalScreen(
+                categoryViewModel = categoryViewModel,
+                recursoViewModel = recursoViewModel
+            )
         }
     }
 }

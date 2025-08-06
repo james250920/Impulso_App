@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,9 +43,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
+import esan.mendoza.impulso.presentation.viewmodel.RecursoViewModel
 
 @Composable
-fun PrincipalScreen(){
+fun PrincipalScreen(
+    categoryViewModel: CategoryViewModel,
+    recursoViewModel: RecursoViewModel
+) {
+    val categories by categoryViewModel.categories.collectAsState()
+    val recursos by recursoViewModel.recursos.collectAsState()
+    val isLoading by categoryViewModel.isLoading.collectAsState()
 
     Column(
         modifier = Modifier
@@ -74,38 +83,58 @@ fun PrincipalScreen(){
 
         }
         Spacer(modifier = Modifier.height(10.dp))
-        Buscador()
+        Buscador(
+            categories = categories,
+            onSearch = { query -> recursoViewModel.searchRecursosByName(query) },
+            onCategorySelected = { categoryId -> 
+                if (categoryId == -1) {
+                    recursoViewModel.loadRecursos()
+                } else {
+                    recursoViewModel.loadRecursosByCategory(categoryId)
+                }
+            }
+        )
 
     }
 }
 
 @Composable
-fun Buscador() {
+fun Buscador(
+    categories: List<esan.mendoza.impulso.data.local.entities.Category> = emptyList(),
+    onSearch: (String) -> Unit = {},
+    onCategorySelected: (Int) -> Unit = {}
+) {
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Todas las categorias") }
+    var selectedCategoryId by remember { mutableStateOf(-1) }
     var searchQuery by remember { mutableStateOf("") }
-    val options = listOf("Todas las categorias", "Opción 1", "Opción 2", "Opción 3")
+    
+    val options = listOf("Todas las categorias") + categories.map { it.nombre }
+    
     // Campo de búsqueda con ícono integrado
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Buscar") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Ícono de búsqueda",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(25.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        cursorColor = MaterialTheme.colorScheme.primary
-                    )
-                )
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = { 
+            searchQuery = it
+            onSearch(it)
+        },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text("Buscar") },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Ícono de búsqueda",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(25.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            cursorColor = MaterialTheme.colorScheme.primary
+        )
+    )
 
     // Botón desplegable
     Box(
@@ -150,12 +179,20 @@ fun Buscador() {
 
 
         ) {
-            options.forEach { option ->
+            options.forEachIndexed { index, option ->
                 DropdownMenuItem(
                     text = { Text(option) },
                     onClick = {
                         selectedOption = option
                         expanded = false
+                        // Si es "Todas las categorias" envía -1, si no envía el ID de la categoría
+                        if (index == 0) {
+                            selectedCategoryId = -1
+                            onCategorySelected(-1)
+                        } else {
+                            selectedCategoryId = categories[index - 1].id
+                            onCategorySelected(categories[index - 1].id)
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()

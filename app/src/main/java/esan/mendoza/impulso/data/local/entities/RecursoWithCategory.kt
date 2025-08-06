@@ -6,7 +6,7 @@ import androidx.room.Relation
 data class RecursoWithCategory(
     @Embedded val recurso: Recurso,
     @Relation(
-        parentColumn = "user_id",
+        parentColumn = "categoria_id",
         entityColumn = "id"
     )
     val category: Category

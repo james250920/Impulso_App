@@ -17,7 +17,7 @@ interface RecursoDao {
     @Query("SELECT * FROM recurso WHERE id = :id")
     suspend fun getRecursoById(id: Int): Recurso?
 
-    @Query("SELECT * FROM recurso WHERE user_id = :categoryId")
+    @Query("SELECT * FROM recurso WHERE categoria_id = :categoryId")
     suspend fun getRecursosByCategory(categoryId: Int): List<Recurso>
 
     @Transaction
@@ -25,7 +25,7 @@ interface RecursoDao {
     suspend fun getRecursosWithCategory(): List<RecursoWithCategory>
 
     @Transaction
-    @Query("SELECT * FROM recurso WHERE user_id = :categoryId")
+    @Query("SELECT * FROM recurso WHERE categoria_id = :categoryId")
     suspend fun getRecursosWithCategoryById(categoryId: Int): List<RecursoWithCategory>
 
     @Insert
