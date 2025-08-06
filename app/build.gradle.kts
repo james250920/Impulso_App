@@ -2,6 +2,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
+    id("androidx.room")
+
+}
+ksp {
+    arg("option_name", "option_value")
+    // other options...
 }
 
 android {
@@ -37,7 +44,11 @@ android {
     buildFeatures {
         compose = true
     }
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
 }
+
 
 dependencies {
 
@@ -59,4 +70,10 @@ dependencies {
 
     // Material Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.7.0")
+
+    // Navigation
+    //Room
+    val room_version = "2.7.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
 }
