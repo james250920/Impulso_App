@@ -43,7 +43,17 @@ class RecursoRepository(
             if (!categoryExists) {
                 Result.failure(IllegalArgumentException("La categoría con ID ${recurso.categoriaId} no existe"))
             } else {
+                // Insertar el nuevo recurso
                 recursoDao.insertRecurso(recurso)
+
+                // Eliminar el recurso de ejemplo si existe (ID = -1) y el nuevo recurso es real (ID > 0)
+                if (recurso.id > 0) {
+                    val exampleRecurso = getRecursoById(-1)
+                    exampleRecurso?.let {
+                        deleteRecurso(it)
+                    }
+                }
+
                 Result.success(Unit)
             }
         } catch (e: Exception) {
@@ -138,6 +148,28 @@ class RecursoRepository(
             }
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    // Verificar si hay recursos reales (excluyendo el ejemplo con ID -1)
+    suspend fun hasRealRecursos(): Boolean {
+        return getAllRecursos().any { it.id > 0 }
+    }
+
+    // Obtener todos los recursos incluyendo el ejemplo si no hay recursos reales
+    suspend fun getAllRecursosWithExample(): List<Recurso> {
+        val realRecursos = getAllRecursos().filter { it.id > 0 }
+        return if (realRecursos.isEmpty()) {
+            // Si no hay recursos reales, incluir el recurso de ejemplo
+            val exampleExists = getAllRecursos().any { it.id == -1 }
+            if (exampleExists) {
+                getAllRecursos()
+            } else {
+                // Si no existe el ejemplo en la BD, agregarlo temporalmente a la lista
+                getAllRecursos() + esan.mendoza.impulso.data.sample.ExampleData.exampleRecurso
+            }
+        } else {
+            realRecursos
         }
     }
 }

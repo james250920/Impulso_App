@@ -224,8 +224,7 @@ fun HomeScreen(
             onDismiss = { showAddCategoryDialog = false },
             onAccept = { nombre, icono, createdAt ->
                 val category = Category(
-                    id = 0, // Room generará el ID automáticamente
-                    nombre = nombre,
+                    nombre = nombre, // Room generará el ID automáticamente
                     icono = icono,
                     createdAt = createdAt,
                     updatedAt = createdAt

@@ -6,7 +6,14 @@ import esan.mendoza.impulso.data.local.entities.Recurso
 object ExampleData {
 
     // Categoría de ejemplo
+    val exampleCategory = Category(
+        id = -1, // ID negativo para distinguirlo de datos reales
+        nombre = "Ejemplo",
+        icono = "ic_baseline_star_24",
+        createdAt = "2024-01-01",
+        updatedAt = "2024-01-01"
 
+    )
 
     // Recurso de ejemplo
     val exampleRecurso = Recurso(
@@ -20,4 +27,3 @@ object ExampleData {
         isFavorite = false
     )
 }
-

@@ -38,7 +38,7 @@ class RecursoViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val recursoList = recursoRepository.getAllRecursos()
+                val recursoList = recursoRepository.getAllRecursosWithExample()
                 _recursos.value = recursoList
                 _error.value = null
             } catch (e: Exception) {

@@ -151,7 +151,8 @@ fun DialogEditCategory(
                         val iconName = selectedIcon?.name ?: category.icono
                         val updatedCategory = category.copy(
                             nombre = nombre,
-                            icono = iconName
+                            icono = iconName,
+
                         )
                         onAccept(updatedCategory)
                         // Reset state
