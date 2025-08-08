@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.BorderAll
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DashboardCustomize
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Link
@@ -48,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import esan.mendoza.impulso.data.local.entities.Category
 import esan.mendoza.impulso.data.local.entities.Recurso
 import esan.mendoza.impulso.presentation.component.IconPicker
 import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
@@ -141,7 +144,7 @@ fun PrincipalScreen(
 
 @Composable
 fun Buscador(
-    categories: List<esan.mendoza.impulso.data.local.entities.Category> = emptyList(),
+    categories: List<Category> = emptyList(),
     onSearch: (String) -> Unit = {},
     onCategorySelected: (Int) -> Unit = {}
 ) {
@@ -179,7 +182,7 @@ fun Buscador(
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp),
+            .padding(top = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(options.size) { index ->
@@ -202,6 +205,13 @@ fun Buscador(
                 ),
                 shape = RoundedCornerShape(20.dp)
             ) {
+                Icon(
+                    imageVector = if (index == 0) Icons.Default.Category else IconPicker.getIconByName(categories[index - 1].icono) ?: Icons.Default.Category,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary
+                )
+                Spacer(modifier = Modifier.width(2.dp))
                 Text(
                     text = option,
                     maxLines = 1,
@@ -237,12 +247,15 @@ fun RecursoGrid(
 }
 
 fun formatFecha(fecha: String): String {
-    // Suponiendo que recurso.createdAt es tipo "yyyy-MM-dd" o similar
+    // Corrige el desfase de día restando 1 día a la fecha registrada
     return try {
         val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val date = parser.parse(fecha)
+        val calendar = java.util.Calendar.getInstance()
+        calendar.time = date!!
+        calendar.add(java.util.Calendar.DAY_OF_MONTH, -1) // Resta un día
         val formatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-        formatter.format(date!!)
+        formatter.format(calendar.time)
     } catch (e: Exception) {
         fecha // Si falla, muestra la fecha original
     }
@@ -442,13 +455,14 @@ fun RecursoCard(
                 )
             }
             Icon(
-                imageVector = Icons.Default.Link,
-                contentDescription = "Icono de recurso",
+                imageVector = Icons.Default.Delete,
+                contentDescription = "elimanar recurso",
                 modifier = Modifier.size(20.dp),
                 tint = if (isExampleResource)
                     MaterialTheme.colorScheme.tertiary
                 else
                     MaterialTheme.colorScheme.primary
+
             )
         }
     }
