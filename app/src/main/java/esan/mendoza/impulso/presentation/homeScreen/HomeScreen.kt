@@ -207,7 +207,7 @@ fun CustomFAB(
     FloatingActionButton(
         onClick = onClick,
         modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 16.dp)
+            .padding(vertical = 2.dp, horizontal = 16.dp)
             .alpha(if (enabled) 1f else 0.9f),
         containerColor = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
     ) {
@@ -242,7 +242,7 @@ fun FABColumn(
     ) {
         Column(
             modifier = Modifier
-                .padding(end = 16.dp, bottom = 32.dp),
+                .padding(end = 16.dp, bottom = 65.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.End
         ) {
