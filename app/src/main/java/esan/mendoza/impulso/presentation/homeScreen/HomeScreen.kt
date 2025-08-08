@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddRoad
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -164,8 +166,8 @@ fun FABColumn(
             horizontalAlignment = Alignment.End
         ) {
             CustomFAB(
-                icon = Icons.Default.Edit,
-                contentDescription = "Edit",
+                icon = Icons.Default.AddRoad,
+                contentDescription = "Añadir Recurso",
                 onClick = {
                     if (fabsEnabled) {
                         // Acción de editar
@@ -175,8 +177,8 @@ fun FABColumn(
             )
 
             CustomFAB(
-                icon = Icons.Default.Delete,
-                contentDescription = "Delete",
+                icon = Icons.Default.Category,
+                contentDescription = "Añadir Categoria",
                 onClick = {
                     if (fabsEnabled) {
                         // Acción de eliminar
@@ -187,7 +189,17 @@ fun FABColumn(
 
             CustomFAB(
                 icon = Icons.Default.Favorite,
-                contentDescription = "Favorite",
+                contentDescription = "Mis Favoritos",
+                onClick = {
+                    if (fabsEnabled) {
+                        // Acción de favorito
+                    }
+                },
+                enabled = fabsEnabled
+            )
+            CustomFAB(
+                icon = Icons.Default.Settings,
+                contentDescription = "Configuración de categorias y recursos",
                 onClick = {
                     if (fabsEnabled) {
                         // Acción de favorito
