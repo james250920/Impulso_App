@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import esan.mendoza.impulso.data.local.entities.Recurso
 import esan.mendoza.impulso.data.local.entities.Category
+import esan.mendoza.impulso.presentation.component.rememberShareHelper
 import esan.mendoza.impulso.presentation.principalScreen.RecursoCard
 import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
 import esan.mendoza.impulso.presentation.viewmodel.RecursoViewModel
@@ -32,6 +33,7 @@ fun FavoritesScreen(
     val categories by categoryViewModel.categories.collectAsState()
     val recursos by recursoViewModel.recursos.collectAsState()
     val isLoading by recursoViewModel.isLoading.collectAsState()
+    val shareHelper = rememberShareHelper()
 
     // Cargar favoritos al entrar a la pantalla
     LaunchedEffect(Unit) {
@@ -122,6 +124,13 @@ fun FavoritesScreen(
                                     onResourceClick = onResourceClick,
                                     onToggleFavorite = { recursoId ->
                                         recursoViewModel.toggleFavorite(recursoId)
+                                    },
+                                    onDeleteResource = { recursoId ->
+                                        recursoViewModel.deleteRecursoById(recursoId)
+                                    },
+                                    onShareResource = { recurso ->
+                                        val categoryName = categories.find { it.id == recurso.categoriaId }?.nombre
+                                        shareHelper(recurso, categoryName)
                                     }
                                 )
                             }

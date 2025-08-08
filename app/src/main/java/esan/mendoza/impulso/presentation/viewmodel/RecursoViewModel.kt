@@ -140,6 +140,19 @@ class RecursoViewModel @Inject constructor(
         }
     }
 
+    fun deleteRecursoById(id: Int) {
+        viewModelScope.launch {
+            try {
+                recursoRepository.deleteRecursoById(id)
+                loadRecursos()
+                loadRecursosWithCategory()
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
     fun searchRecursosByName(query: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -208,17 +221,21 @@ class RecursoViewModel @Inject constructor(
     fun toggleFavorite(recursoId: Int) {
         viewModelScope.launch {
             try {
-                val result = recursoRepository.toggleFavorite(recursoId)
-                result.fold(
-                    onSuccess = {
-                        loadRecursos()
-                        loadRecursosWithCategory()
-                        _error.value = null
-                    },
-                    onFailure = { exception ->
-                        _error.value = exception.message
-                    }
-                )
+                val recurso = recursoRepository.getRecursoById(recursoId)
+                recurso?.let {
+                    val updatedRecurso = it.copy(isFavorite = !it.isFavorite)
+                    val result = recursoRepository.updateRecurso(updatedRecurso)
+                    result.fold(
+                        onSuccess = {
+                            loadRecursos()
+                            loadRecursosWithCategory()
+                            _error.value = null
+                        },
+                        onFailure = { exception ->
+                            _error.value = exception.message
+                        }
+                    )
+                }
             } catch (e: Exception) {
                 _error.value = e.message
             }

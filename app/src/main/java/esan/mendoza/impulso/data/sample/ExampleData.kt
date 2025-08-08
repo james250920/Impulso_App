@@ -6,11 +6,7 @@ import esan.mendoza.impulso.data.local.entities.Recurso
 object ExampleData {
 
     // Categoría de ejemplo
-    val exampleCategory = Category(
-        id = -1, // ID negativo para distinguirlo de datos reales
-        nombre = "Ejemplo",
-        icono = "Información"
-    )
+
 
     // Recurso de ejemplo
     val exampleRecurso = Recurso(
@@ -22,9 +18,5 @@ object ExampleData {
         createdAt = "2024-01-01",
         isFavorite = false
     )
-
-    // Lista combinada para mostrar
-    fun getExampleData(): Pair<List<Category>, List<Recurso>> {
-        return Pair(listOf(exampleCategory), listOf(exampleRecurso))
-    }
 }
+

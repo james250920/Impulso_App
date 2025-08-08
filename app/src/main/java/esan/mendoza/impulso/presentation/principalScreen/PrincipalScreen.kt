@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +26,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -53,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import esan.mendoza.impulso.data.local.entities.Category
 import esan.mendoza.impulso.data.local.entities.Recurso
 import esan.mendoza.impulso.presentation.component.IconPicker
+import esan.mendoza.impulso.presentation.component.rememberShareHelper
 import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
 import esan.mendoza.impulso.presentation.viewmodel.RecursoViewModel
 import java.text.SimpleDateFormat
@@ -66,7 +65,9 @@ fun PrincipalScreen(
 ) {
     val categories by categoryViewModel.categories.collectAsState()
     val recursos by recursoViewModel.recursos.collectAsState()
-    val isLoading by categoryViewModel.isLoading.collectAsState()
+
+    // Helper para compartir recursos
+    val shareHelper = rememberShareHelper()
 
     Column(
         modifier = Modifier
@@ -136,6 +137,13 @@ fun PrincipalScreen(
             onResourceClick = onResourceClick,
             onToggleFavorite = { recursoId ->
                 recursoViewModel.toggleFavorite(recursoId)
+            },
+            onDeleteResource = { recursoId ->
+                recursoViewModel.deleteRecursoById(recursoId)
+            },
+            onShareResource = { recurso ->
+                val categoryName = categories.find { it.id == recurso.categoriaId }?.nombre
+                shareHelper(recurso, categoryName)
             }
         )
 
@@ -148,9 +156,7 @@ fun Buscador(
     onSearch: (String) -> Unit = {},
     onCategorySelected: (Int) -> Unit = {}
 ) {
-    var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Todas las categorias") }
-    var selectedCategoryId by remember { mutableStateOf(-1) }
     var searchQuery by remember { mutableStateOf("") }
 
     val options = listOf("Todas las categorias") + categories.map { it.nombre }
@@ -192,10 +198,8 @@ fun Buscador(
                 onClick = {
                     selectedOption = option
                     if (index == 0) {
-                        selectedCategoryId = -1
                         onCategorySelected(-1)
                     } else {
-                        selectedCategoryId = categories[index - 1].id
                         onCategorySelected(categories[index - 1].id)
                     }
                 },
@@ -227,7 +231,9 @@ fun RecursoGrid(
     recursos: List<Recurso>,
     categories: List<esan.mendoza.impulso.data.local.entities.Category>,
     onResourceClick: (Recurso, esan.mendoza.impulso.data.local.entities.Category?) -> Unit = { _, _ -> },
-    onToggleFavorite: (Int) -> Unit = {}
+    onToggleFavorite: (Int) -> Unit = {},
+    onDeleteResource: (Int) -> Unit = {},
+    onShareResource: (Recurso) -> Unit = {}
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -240,7 +246,9 @@ fun RecursoGrid(
                 recurso = recurso,
                 categories = categories,
                 onResourceClick = onResourceClick,
-                onToggleFavorite = onToggleFavorite
+                onToggleFavorite = onToggleFavorite,
+                onDeleteResource = onDeleteResource,
+                onShareResource = onShareResource
             )
         }
     }
@@ -266,7 +274,9 @@ fun RecursoCard(
     recurso: Recurso,
     categories: List<esan.mendoza.impulso.data.local.entities.Category>,
     onResourceClick: (Recurso, esan.mendoza.impulso.data.local.entities.Category?) -> Unit = { _, _ -> },
-    onToggleFavorite: (Int) -> Unit = {}
+    onToggleFavorite: (Int) -> Unit = {},
+    onDeleteResource: (Int) -> Unit = {},
+    onShareResource: (Recurso) -> Unit = {} // Removiendo @Composable del parámetro
 ) {
     val categoriaNombre = categories.find { it.id == recurso.categoriaId }?.nombre ?: "Sin categoría"
     val categoria = categories.find { it.id == recurso.categoriaId }
@@ -361,7 +371,7 @@ fun RecursoCard(
                                 )
                             }
                             IconButton(
-                                onClick = { /* TODO: Implementar compartir */ },
+                                onClick = { onShareResource(recurso) },
                                 modifier = Modifier.size(24.dp)
                             ) {
                                 Icon(
@@ -454,16 +464,24 @@ fun RecursoCard(
                         MaterialTheme.colorScheme.onSurface
                 )
             }
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "elimanar recurso",
-                modifier = Modifier.size(20.dp),
-                tint = if (isExampleResource)
-                    MaterialTheme.colorScheme.tertiary
-                else
-                    MaterialTheme.colorScheme.primary
-
-            )
+            IconButton(
+                onClick = {
+                    if (!isExampleResource) {
+                        onDeleteResource(recurso.id)
+                    }
+                },
+                modifier = Modifier.size(20.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Eliminar recurso",
+                    modifier = Modifier.size(16.dp),
+                    tint = if (isExampleResource)
+                        MaterialTheme.colorScheme.outline
+                    else
+                        MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }

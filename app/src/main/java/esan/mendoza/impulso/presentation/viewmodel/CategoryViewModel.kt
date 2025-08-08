@@ -38,7 +38,7 @@ class CategoryViewModel @Inject constructor(
 
                 // Si no hay categorías reales, mostrar la categoría de ejemplo
                 if (categoryList.isEmpty()) {
-                    _categories.value = listOf(ExampleData.exampleCategory)
+
                 } else {
                     _categories.value = categoryList
                 }
