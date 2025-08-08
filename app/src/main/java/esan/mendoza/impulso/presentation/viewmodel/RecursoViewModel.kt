@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import esan.mendoza.impulso.data.local.entities.Recurso
 import esan.mendoza.impulso.data.local.entities.RecursoWithCategory
 import esan.mendoza.impulso.data.local.repositories.RecursoRepository
+import esan.mendoza.impulso.data.sample.ExampleData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,7 +40,14 @@ class RecursoViewModel @Inject constructor(
             _isLoading.value = true
             try {
                 val recursoList = recursoRepository.getAllRecursos()
-                _recursos.value = recursoList
+
+                // Si no hay recursos reales, mostrar el recurso de ejemplo
+                if (recursoList.isEmpty()) {
+                    _recursos.value = listOf(ExampleData.exampleRecurso)
+                } else {
+                    _recursos.value = recursoList
+                }
+
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message
@@ -149,5 +157,71 @@ class RecursoViewModel @Inject constructor(
 
     fun clearError() {
         _error.value = null
+    }
+
+    fun addRecurso(nombre: String, descripcion: String, categoriaId: Int, link: String, createdAt: String) {
+        viewModelScope.launch {
+            try {
+                val newRecurso = Recurso(
+                    id = 0, // Room generará el ID automáticamente
+                    nombre = nombre,
+                    descripcion = descripcion,
+                    categoriaId = categoriaId,
+                    link = link,
+                    createdAt = createdAt
+                )
+                val result = recursoRepository.insertRecurso(newRecurso)
+                result.fold(
+                    onSuccess = {
+                        loadRecursos() // Recargar la lista (esto eliminará automáticamente el ejemplo)
+                        loadRecursosWithCategory()
+                        _error.value = null
+                    },
+                    onFailure = { exception ->
+                        _error.value = exception.message
+                    }
+                )
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    // Métodos para manejar favoritos
+    fun loadFavoriteRecursos() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val favoriteRecursos = recursoRepository.getFavoriteRecursos()
+
+                // Para favoritos, no mostrar ejemplos - solo recursos reales marcados como favoritos
+                _recursos.value = favoriteRecursos
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun toggleFavorite(recursoId: Int) {
+        viewModelScope.launch {
+            try {
+                val result = recursoRepository.toggleFavorite(recursoId)
+                result.fold(
+                    onSuccess = {
+                        loadRecursos()
+                        loadRecursosWithCategory()
+                        _error.value = null
+                    },
+                    onFailure = { exception ->
+                        _error.value = exception.message
+                    }
+                )
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
     }
 }

@@ -19,31 +19,25 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AcUnit
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BorderAll
-import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DashboardCustomize
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import esan.mendoza.impulso.data.local.entities.Recurso
+import esan.mendoza.impulso.presentation.component.IconPicker
 import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
 import esan.mendoza.impulso.presentation.viewmodel.RecursoViewModel
 import java.text.SimpleDateFormat
@@ -63,7 +58,8 @@ import java.util.Locale
 @Composable
 fun PrincipalScreen(
     categoryViewModel: CategoryViewModel,
-    recursoViewModel: RecursoViewModel
+    recursoViewModel: RecursoViewModel,
+    onResourceClick: (Recurso, esan.mendoza.impulso.data.local.entities.Category?) -> Unit = { _, _ -> }
 ) {
     val categories by categoryViewModel.categories.collectAsState()
     val recursos by recursoViewModel.recursos.collectAsState()
@@ -131,7 +127,14 @@ fun PrincipalScreen(
             )
 
         }
-        RecursoGrid(recursos, categories)
+        RecursoGrid(
+            recursos = recursos,
+            categories = categories,
+            onResourceClick = onResourceClick,
+            onToggleFavorite = { recursoId ->
+                recursoViewModel.toggleFavorite(recursoId)
+            }
+        )
 
     }
 }
@@ -210,7 +213,12 @@ fun Buscador(
 }
 
 @Composable
-fun RecursoGrid(recursos: List<Recurso>, categories: List<esan.mendoza.impulso.data.local.entities.Category>) {
+fun RecursoGrid(
+    recursos: List<Recurso>,
+    categories: List<esan.mendoza.impulso.data.local.entities.Category>,
+    onResourceClick: (Recurso, esan.mendoza.impulso.data.local.entities.Category?) -> Unit = { _, _ -> },
+    onToggleFavorite: (Int) -> Unit = {}
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxWidth(),
@@ -218,7 +226,12 @@ fun RecursoGrid(recursos: List<Recurso>, categories: List<esan.mendoza.impulso.d
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         items(recursos) { recurso ->
-            RecursoCard(recurso, categories)
+            RecursoCard(
+                recurso = recurso,
+                categories = categories,
+                onResourceClick = onResourceClick,
+                onToggleFavorite = onToggleFavorite
+            )
         }
     }
 }
@@ -238,16 +251,32 @@ fun formatFecha(fecha: String): String {
 @Composable
 fun RecursoCard(
     recurso: Recurso,
-    categories: List<esan.mendoza.impulso.data.local.entities.Category>
+    categories: List<esan.mendoza.impulso.data.local.entities.Category>,
+    onResourceClick: (Recurso, esan.mendoza.impulso.data.local.entities.Category?) -> Unit = { _, _ -> },
+    onToggleFavorite: (Int) -> Unit = {}
 ) {
     val categoriaNombre = categories.find { it.id == recurso.categoriaId }?.nombre ?: "Sin categoría"
+    val categoria = categories.find { it.id == recurso.categoriaId }
+    val categoryIcon = categoria?.let {
+        IconPicker.getIconByName(it.icono) ?: Icons.Default.Category
+    } ?: Icons.Default.Category
+
+    // Verificar si es el recurso de ejemplo
+    val isExampleResource = recurso.id == -1
+
     Column {
         Card(
             modifier = Modifier
                 .padding(4.dp)
                 .fillMaxWidth()
                 .height(120.dp),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            onClick = {
+                // Solo permitir clic en recursos reales, no en el ejemplo
+                if (!isExampleResource) {
+                    onResourceClick(recurso, categoria)
+                }
+            }
         ) {
             Column(
                 modifier = Modifier
@@ -264,41 +293,87 @@ fun RecursoCard(
                     Box(
                         modifier = Modifier
                             .background(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                color = if (isExampleResource)
+                                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f)
+                                else
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .border(
                                 width = 1.dp,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = if (isExampleResource)
+                                    MaterialTheme.colorScheme.tertiary
+                                else
+                                    MaterialTheme.colorScheme.primary,
                                 shape = RoundedCornerShape(8.dp)
                             ),
                     ) {
-                        Text(
-                            text = categoriaNombre,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .padding(horizontal = 2.dp, vertical = 1.dp)
-
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = categoryIcon,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = if (isExampleResource)
+                                    MaterialTheme.colorScheme.tertiary
+                                else
+                                    MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = categoriaNombre,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isExampleResource)
+                                    MaterialTheme.colorScheme.tertiary
+                                else
+                                    MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                     Row {
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = "Icono de recurso",
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Icono de recurso",
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-
+                        if (!isExampleResource) {
+                            IconButton(
+                                onClick = { onToggleFavorite(recurso.id) },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (recurso.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favorito",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = if (recurso.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            IconButton(
+                                onClick = { /* TODO: Implementar compartir */ },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Compartir",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        } else {
+                            // Para el ejemplo, mostrar iconos deshabilitados
+                            Icon(
+                                imageVector = Icons.Default.FavoriteBorder,
+                                contentDescription = "Ejemplo",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Ejemplo",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.outline
+                            )
+                        }
                     }
                 }
 
@@ -308,18 +383,30 @@ fun RecursoCard(
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    color = if (isExampleResource)
+                        MaterialTheme.colorScheme.tertiary
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 2.dp),
+                    color = if (isExampleResource)
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
+                    else
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 )
                 Text(
                     text = recurso.descripcion,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    color = if (isExampleResource)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -338,20 +425,30 @@ fun RecursoCard(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Icono de recurso",
                     modifier = Modifier.size(10.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = if (isExampleResource)
+                        MaterialTheme.colorScheme.tertiary
+                    else
+                        MaterialTheme.colorScheme.primary
                 )
                 Text(
                     text = formatFecha(recurso.createdAt),
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (isExampleResource)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
             }
             Icon(
                 imageVector = Icons.Default.Link,
                 contentDescription = "Icono de recurso",
                 modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = if (isExampleResource)
+                    MaterialTheme.colorScheme.tertiary
+                else
+                    MaterialTheme.colorScheme.primary
             )
         }
     }

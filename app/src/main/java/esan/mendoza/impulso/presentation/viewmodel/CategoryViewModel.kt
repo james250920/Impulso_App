@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import esan.mendoza.impulso.data.local.entities.Category
 import esan.mendoza.impulso.data.local.repositories.CategoryRepository
+import esan.mendoza.impulso.data.sample.ExampleData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +35,14 @@ class CategoryViewModel @Inject constructor(
             _isLoading.value = true
             try {
                 val categoryList = categoryRepository.getAllCategories()
-                _categories.value = categoryList
+
+                // Si no hay categorías reales, mostrar la categoría de ejemplo
+                if (categoryList.isEmpty()) {
+                    _categories.value = listOf(ExampleData.exampleCategory)
+                } else {
+                    _categories.value = categoryList
+                }
+
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message
@@ -73,6 +81,23 @@ class CategoryViewModel @Inject constructor(
             try {
                 categoryRepository.deleteCategory(category)
                 loadCategories() // Recargar la lista
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun addCategory(nombre: String, icono: String) {
+        viewModelScope.launch {
+            try {
+                val newCategory = Category(
+                    id = 0, // Room generará el ID automáticamente si es @PrimaryKey(autoGenerate = true)
+                    nombre = nombre,
+                    icono = icono
+                )
+                categoryRepository.insertCategory(newCategory)
+                loadCategories() // Recargar la lista (esto eliminará automáticamente el ejemplo)
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message

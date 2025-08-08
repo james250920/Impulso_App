@@ -115,4 +115,29 @@ class RecursoRepository(
                     it.recurso.descripcion.contains(query, ignoreCase = true)
         }
     }
+
+    // Obtener recursos favoritos
+    suspend fun getFavoriteRecursos(): List<Recurso> {
+        return getAllRecursos().filter { it.isFavorite }
+    }
+
+    // Obtener recursos favoritos con categoría
+    suspend fun getFavoriteRecursosWithCategory(): List<RecursoWithCategory> {
+        return getRecursosWithCategory().filter { it.recurso.isFavorite }
+    }
+
+    // Alternar estado de favorito
+    suspend fun toggleFavorite(recursoId: Int): Result<Unit> {
+        return try {
+            val recurso = getRecursoById(recursoId)
+            if (recurso != null) {
+                val updatedRecurso = recurso.copy(isFavorite = !recurso.isFavorite)
+                updateRecurso(updatedRecurso)
+            } else {
+                Result.failure(IllegalArgumentException("Recurso no encontrado"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

@@ -19,7 +19,7 @@ import androidx.room.PrimaryKey
     indices = [Index(value = ["categoria_id"])]
 )
 data class Recurso(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     val id: Int,
 
     @ColumnInfo(name = "Nombre")
@@ -35,5 +35,8 @@ data class Recurso(
     val link: String,
 
     @ColumnInfo(name = "created_at")
-    val createdAt: String // Puedes usar Long para timestamp o Date
+    val createdAt: String, // Puedes usar Long para timestamp o Date
+
+    @ColumnInfo(name = "is_favorite")
+    val isFavorite: Boolean = false
 )
