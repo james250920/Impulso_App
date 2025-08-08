@@ -1,5 +1,7 @@
 package esan.mendoza.impulso.presentation.homeScreen
 
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -26,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import esan.mendoza.impulso.data.local.entities.Recurso
@@ -56,6 +60,45 @@ fun HomeScreen(
     var fabsVisible by remember { mutableStateOf(false) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
     var showAddRecursoDialog by remember { mutableStateOf(false) }
+
+    // Configurar el manejo del botón de regreso del dispositivo
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+
+    DisposableEffect(navigationState.currentScreen, backDispatcher) {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                when (navigationState.currentScreen) {
+                    Screen.HOME -> {
+                        // Si estamos en HOME, salir de la app (comportamiento por defecto)
+                        isEnabled = false
+                        backDispatcher?.onBackPressed()
+                    }
+                    Screen.RESOURCE_DETAIL -> {
+                        // Regresar a HOME desde detalle de recurso
+                        navigationState = navigationState.copy(
+                            currentScreen = Screen.HOME,
+                            selectedRecurso = null,
+                            selectedCategory = null
+                        )
+                    }
+                    Screen.FAVORITES -> {
+                        // Regresar a HOME desde favoritos
+                        navigationState = navigationState.copy(currentScreen = Screen.HOME)
+                    }
+                    Screen.SETTINGS -> {
+                        // Regresar a HOME desde configuración
+                        navigationState = navigationState.copy(currentScreen = Screen.HOME)
+                    }
+                }
+            }
+        }
+
+        backDispatcher?.addCallback(callback)
+
+        onDispose {
+            callback.remove()
+        }
+    }
 
     Scaffold(
         floatingActionButton = {
