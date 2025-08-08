@@ -26,8 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import esan.mendoza.impulso.data.local.entities.Category
 import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
-import java.text.SimpleDateFormat
-import java.util.*
+import esan.mendoza.impulso.utils.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,10 +82,9 @@ fun DialogAddRecurso(
         }
     }
 
-    // Fecha automática
+    // Usar la nueva utilidad de fechas para obtener la fecha actual
     val currentDate = remember {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        dateFormat.format(Date())
+        DateUtils.getCurrentDateTimeString()
     }
 
     if (show) {
@@ -209,39 +207,37 @@ fun DialogAddRecurso(
                         }
                     }
 
-                    // Enlace opcional
+                    // Botón para mostrar/ocultar campo de enlace
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Enlace (opcional)",
+                            text = "¿Deseas agregar un enlace?",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium
                         )
-
                         Switch(
                             checked = showLinkField,
                             onCheckedChange = { showLinkField = it }
                         )
                     }
 
+                    // Campo de enlace (opcional)
                     if (showLinkField) {
                         OutlinedTextField(
                             value = link,
                             onValueChange = { link = it },
-                            label = { Text("URL o enlace") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
+                            label = { Text("Enlace (opcional)") },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Link,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    contentDescription = "Enlace"
                                 )
                             },
-                            placeholder = { Text("https://ejemplo.com") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
                             shape = RoundedCornerShape(12.dp)
                         )
                     }
@@ -300,12 +296,15 @@ fun DialogAddRecurso(
                         showLinkField = false
                         isRecording = false
                         voiceError = null
-                        voiceHelper.destroy()
+
+                        if (isRecording) {
+                            voiceHelper.stopListening()
+                        }
                     },
                     enabled = nombre.isNotBlank() && descripcion.isNotBlank() && selectedCategory != null,
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Crear Recurso")
+                    Text("Agregar")
                 }
             },
             dismissButton = {
@@ -313,18 +312,11 @@ fun DialogAddRecurso(
                     onClick = {
                         if (isRecording) {
                             voiceHelper.stopListening()
+                            isRecording = false
                         }
                         onDismiss()
-                        // Reset state
-                        nombre = ""
-                        descripcion = ""
-                        link = ""
-                        selectedCategory = null
-                        showLinkField = false
-                        isRecording = false
-                        voiceError = null
                     },
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("Cancelar")
                 }

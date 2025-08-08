@@ -1,12 +1,9 @@
 package esan.mendoza.impulso.presentation.resourceDetailScreen
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -15,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
@@ -32,8 +28,7 @@ import esan.mendoza.impulso.presentation.component.IconPicker
 import esan.mendoza.impulso.presentation.component.rememberShareHelper
 import esan.mendoza.impulso.presentation.viewmodel.RecursoViewModel
 import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
-import java.text.SimpleDateFormat
-import java.util.*
+import esan.mendoza.impulso.utils.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +72,7 @@ fun ResourceDetailScreen(
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        // Top Bar mejorada
+        // Top Bar
         TopAppBar(
             title = {
                 Text(
@@ -131,7 +126,7 @@ fun ResourceDetailScreen(
             }
         )
 
-        // Content mejorado
+        // Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -194,7 +189,7 @@ fun ResourceDetailScreen(
                         // Botón de favorito
                         IconButton(
                             onClick = {
-                                recursoViewModel.toggleFavorite(recurso.id)
+                                recursoViewModel.toggleFavorite(recurso)
                             }
                         ) {
                             Icon(
@@ -208,7 +203,7 @@ fun ResourceDetailScreen(
                 }
             }
 
-            // Description Card mejorada
+            // Description Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -246,7 +241,7 @@ fun ResourceDetailScreen(
                 }
             }
 
-            // Link Card mejorada (solo si tiene enlace)
+            // Link Card (solo si tiene enlace)
             if (recurso.link.isNotBlank()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -324,7 +319,7 @@ fun ResourceDetailScreen(
                 }
             }
 
-            // Date Card mejorada
+            // Date Card - SOLO CORRECCIÓN DE FECHA AQUÍ
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -396,7 +391,6 @@ fun ResourceDetailScreen(
                                     category = category,
                                     onClick = {
                                         // Aquí podrías navegar al detalle del recurso relacionado
-                                        // Por ahora solo muestra el card
                                     }
                                 )
                             }
@@ -431,7 +425,7 @@ fun ResourceDetailScreen(
                         )
                     ) {
                         Text(
-                            text = "⚠️ Esta acción no se puede deshacer.",
+                            text = "Esta acción no se puede deshacer.",
                             modifier = Modifier.padding(12.dp),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
@@ -444,41 +438,40 @@ fun ResourceDetailScreen(
                     onClick = {
                         recursoViewModel.deleteRecursoById(recurso.id)
                         showDeleteDialog = false
-                        onBackClick() // Volver después de eliminar
+                        onBackClick()
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        "Eliminar",
-                        color = MaterialTheme.colorScheme.onError
                     )
+                ) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.onError)
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showDeleteDialog = false },
-                    shape = RoundedCornerShape(8.dp)
-                ) {
+                TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Cancelar")
                 }
             }
         )
     }
 
-    // Diálogo de edición de recurso
-    DialogEditRecurso(
-        show = showEditDialog,
-        recurso = recurso,
-        onDismiss = { showEditDialog = false },
-        onAccept = { updatedRecurso ->
-            recursoViewModel.updateRecurso(updatedRecurso)
-            showEditDialog = false
-        },
-        categoryViewModel = categoryViewModel
-    )
+    // Diálogo de edición
+    if (showEditDialog) {
+        DialogEditRecurso(
+            show = showEditDialog,
+            recurso = recurso,
+            onDismiss = { showEditDialog = false },
+            onAccept = { updatedRecurso ->
+                recursoViewModel.updateRecurso(updatedRecurso)
+                showEditDialog = false
+            }
+        )
+    }
+}
+
+// Función para formatear fechas usando la nueva utilidad DateUtils
+fun formatFecha(fecha: String): String {
+    return DateUtils.formatForDisplay(fecha)
 }
 
 @Composable
@@ -489,84 +482,63 @@ fun RelatedResourceCard(
 ) {
     Card(
         modifier = Modifier
-            .width(200.dp)
+            .width(180.dp)
             .height(120.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(12.dp),
         onClick = onClick
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Header con categoría
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(6.dp)
-                    )
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(6.dp)
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        imageVector = IconPicker.getIconByName(category.icono) ?: Icons.Default.Category,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = category.nombre,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Icon(
+                    imageVector = IconPicker.getIconByName(category.icono) ?: Icons.Default.Category,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = category.nombre,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Título
             Text(
                 text = resource.nombre,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Descripción
             Text(
                 text = resource.descripcion,
-                style = MaterialTheme.typography.bodySmall,
+                fontSize = 12.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
-        }
-    }
-}
 
-fun formatFecha(fecha: String): String {
-    return try {
-        val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val date = parser.parse(fecha)
-        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        formatter.format(date!!)
-    } catch (e: Exception) {
-        fecha
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = formatFecha(resource.createdAt),
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.outline,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

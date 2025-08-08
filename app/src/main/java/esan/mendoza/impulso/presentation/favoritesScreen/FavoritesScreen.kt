@@ -18,7 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import esan.mendoza.impulso.data.local.entities.Recurso
 import esan.mendoza.impulso.data.local.entities.Category
 import esan.mendoza.impulso.presentation.component.rememberShareHelper
-import esan.mendoza.impulso.presentation.principalScreen.RecursoCard
 import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
 import esan.mendoza.impulso.presentation.viewmodel.RecursoViewModel
 
@@ -122,8 +121,8 @@ fun FavoritesScreen(
                                     recurso = recurso,
                                     categories = categories,
                                     onResourceClick = onResourceClick,
-                                    onToggleFavorite = { recursoId ->
-                                        recursoViewModel.toggleFavorite(recursoId)
+                                    onToggleFavorite = { recurso ->
+                                        recursoViewModel.toggleFavorite(recurso)
                                     },
                                     onDeleteResource = { recursoId ->
                                         recursoViewModel.deleteRecursoById(recursoId)

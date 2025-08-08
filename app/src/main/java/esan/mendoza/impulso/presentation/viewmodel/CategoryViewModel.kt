@@ -35,31 +35,25 @@ class CategoryViewModel @Inject constructor(
             _isLoading.value = true
             try {
                 val categoryList = categoryRepository.getAllCategories()
-
-                // Si no hay categorías reales, mostrar la categoría de ejemplo
-                if (categoryList.isEmpty()) {
-
-                } else {
-                    _categories.value = categoryList
-                }
-
+                _categories.value = categoryList
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message
+                _categories.value = emptyList()
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    fun insertCategory(category: Category) {
+    fun addCategory(category: Category) {
         viewModelScope.launch {
             try {
                 categoryRepository.insertCategory(category)
-                loadCategories() // Recargar la lista
+                loadCategories() // Recargar la lista después de agregar
                 _error.value = null
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = "Error al crear categoría: ${e.message}"
             }
         }
     }
@@ -68,10 +62,10 @@ class CategoryViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 categoryRepository.updateCategory(category)
-                loadCategories() // Recargar la lista
+                loadCategories() // Recargar la lista después de actualizar
                 _error.value = null
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = "Error al actualizar categoría: ${e.message}"
             }
         }
     }
@@ -80,27 +74,10 @@ class CategoryViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 categoryRepository.deleteCategory(category)
-                loadCategories() // Recargar la lista
+                loadCategories() // Recargar la lista después de eliminar
                 _error.value = null
             } catch (e: Exception) {
-                _error.value = e.message
-            }
-        }
-    }
-
-    fun addCategory(nombre: String, icono: String) {
-        viewModelScope.launch {
-            try {
-                val newCategory = Category(
-                    id = 0, // Room generará el ID automáticamente si es @PrimaryKey(autoGenerate = true)
-                    nombre = nombre,
-                    icono = icono
-                )
-                categoryRepository.insertCategory(newCategory)
-                loadCategories() // Recargar la lista (esto eliminará automáticamente el ejemplo)
-                _error.value = null
-            } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = "Error al eliminar categoría: ${e.message}"
             }
         }
     }

@@ -12,7 +12,7 @@ import esan.mendoza.impulso.data.local.entities.Recurso
 
 @Database(
     entities = [Category::class, Recurso::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

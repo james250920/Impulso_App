@@ -20,7 +20,7 @@ import androidx.room.PrimaryKey
 )
 data class Recurso(
     @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    val id: Int = 0, // Valor por defecto para permitir autoGenerate
 
     @ColumnInfo(name = "Nombre")
     val nombre: String,
@@ -36,6 +36,9 @@ data class Recurso(
 
     @ColumnInfo(name = "created_at")
     val createdAt: String, // Puedes usar Long para timestamp o Date
+
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: String, // Puedes usar Long para timestamp o Date
 
     @ColumnInfo(name = "is_favorite")
     val isFavorite: Boolean = false

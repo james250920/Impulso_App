@@ -16,6 +16,7 @@ object ExampleData {
         categoriaId = -1,
         link = "https://ejemplo.com",
         createdAt = "2024-01-01",
+        updatedAt = "2024-01-01",
         isFavorite = false
     )
 }

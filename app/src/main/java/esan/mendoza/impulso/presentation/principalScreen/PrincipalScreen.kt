@@ -39,6 +39,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,8 +55,7 @@ import esan.mendoza.impulso.presentation.component.IconPicker
 import esan.mendoza.impulso.presentation.component.rememberShareHelper
 import esan.mendoza.impulso.presentation.viewmodel.CategoryViewModel
 import esan.mendoza.impulso.presentation.viewmodel.RecursoViewModel
-import java.text.SimpleDateFormat
-import java.util.Locale
+import esan.mendoza.impulso.utils.DateUtils
 
 @Composable
 fun PrincipalScreen(
@@ -135,8 +135,8 @@ fun PrincipalScreen(
             recursos = recursos,
             categories = categories,
             onResourceClick = onResourceClick,
-            onToggleFavorite = { recursoId ->
-                recursoViewModel.toggleFavorite(recursoId)
+            onToggleFavorite = { recurso ->
+                recursoViewModel.toggleFavorite(recurso)
             },
             onDeleteResource = { recursoId ->
                 recursoViewModel.deleteRecursoById(recursoId)
@@ -160,6 +160,13 @@ fun Buscador(
     var searchQuery by remember { mutableStateOf("") }
 
     val options = listOf("Todas las categorias") + categories.map { it.nombre }
+
+    // Recargar todos los recursos cuando se selecciona "Todas las categorias" al inicializar
+    LaunchedEffect(selectedOption) {
+        if (selectedOption == "Todas las categorias") {
+            onCategorySelected(-1)
+        }
+    }
 
     // Campo de búsqueda con ícono integrado
     OutlinedTextField(
@@ -198,7 +205,7 @@ fun Buscador(
                 onClick = {
                     selectedOption = option
                     if (index == 0) {
-                        onCategorySelected(-1)
+                        onCategorySelected(-1) // Todas las categorías
                     } else {
                         onCategorySelected(categories[index - 1].id)
                     }
@@ -231,7 +238,7 @@ fun RecursoGrid(
     recursos: List<Recurso>,
     categories: List<esan.mendoza.impulso.data.local.entities.Category>,
     onResourceClick: (Recurso, esan.mendoza.impulso.data.local.entities.Category?) -> Unit = { _, _ -> },
-    onToggleFavorite: (Int) -> Unit = {},
+    onToggleFavorite: (Recurso) -> Unit = {},
     onDeleteResource: (Int) -> Unit = {},
     onShareResource: (Recurso) -> Unit = {}
 ) {
@@ -255,18 +262,7 @@ fun RecursoGrid(
 }
 
 fun formatFecha(fecha: String): String {
-    // Corrige el desfase de día restando 1 día a la fecha registrada
-    return try {
-        val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val date = parser.parse(fecha)
-        val calendar = java.util.Calendar.getInstance()
-        calendar.time = date!!
-        calendar.add(java.util.Calendar.DAY_OF_MONTH, -1) // Resta un día
-        val formatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-        formatter.format(calendar.time)
-    } catch (e: Exception) {
-        fecha // Si falla, muestra la fecha original
-    }
+    return DateUtils.formatForDisplay(fecha)
 }
 
 @Composable
@@ -274,7 +270,7 @@ fun RecursoCard(
     recurso: Recurso,
     categories: List<esan.mendoza.impulso.data.local.entities.Category>,
     onResourceClick: (Recurso, esan.mendoza.impulso.data.local.entities.Category?) -> Unit = { _, _ -> },
-    onToggleFavorite: (Int) -> Unit = {},
+    onToggleFavorite: (Recurso) -> Unit = {},
     onDeleteResource: (Int) -> Unit = {},
     onShareResource: (Recurso) -> Unit = {} // Removiendo @Composable del parámetro
 ) {
@@ -360,7 +356,7 @@ fun RecursoCard(
                     Row {
                         if (!isExampleResource) {
                             IconButton(
-                                onClick = { onToggleFavorite(recurso.id) },
+                                onClick = { onToggleFavorite(recurso) },
                                 modifier = Modifier.size(24.dp)
                             ) {
                                 Icon(

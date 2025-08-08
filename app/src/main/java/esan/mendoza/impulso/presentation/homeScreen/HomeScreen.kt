@@ -222,8 +222,15 @@ fun HomeScreen(
         esan.mendoza.impulso.presentation.component.DialogAddCategory(
             show = showAddCategoryDialog,
             onDismiss = { showAddCategoryDialog = false },
-            onAccept = { nombre, icono ->
-                categoryViewModel.addCategory(nombre, icono)
+            onAccept = { nombre, icono, createdAt ->
+                val category = Category(
+                    id = 0, // Room generará el ID automáticamente
+                    nombre = nombre,
+                    icono = icono,
+                    createdAt = createdAt,
+                    updatedAt = createdAt
+                )
+                categoryViewModel.addCategory(category)
                 showAddCategoryDialog = false
             }
         )
@@ -232,7 +239,17 @@ fun HomeScreen(
             show = showAddRecursoDialog,
             onDismiss = { showAddRecursoDialog = false },
             onAccept = { nombre, descripcion, categoriaId, link, createdAt ->
-                recursoViewModel.addRecurso(nombre, descripcion, categoriaId.toIntOrNull() ?: 0, link, createdAt)
+                val recurso = Recurso(
+                    id = 0, // Room generará el ID automáticamente
+                    nombre = nombre,
+                    descripcion = descripcion,
+                    categoriaId = categoriaId.toIntOrNull() ?: 0,
+                    link = link,
+                    createdAt = createdAt,
+                    updatedAt = createdAt,
+                    isFavorite = false
+                )
+                recursoViewModel.addRecurso(recurso)
                 showAddRecursoDialog = false
             },
             categoryViewModel = categoryViewModel

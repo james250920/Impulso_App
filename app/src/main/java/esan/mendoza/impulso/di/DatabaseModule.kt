@@ -23,7 +23,9 @@ object DatabaseModule {
             context.applicationContext,
             AppDatabase::class.java,
             "app_database"
-        ).build()
+        )
+        .fallbackToDestructiveMigration() // Permite recrear la DB si hay problemas de migración
+        .build()
     }
 
     @Provides

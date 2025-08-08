@@ -16,16 +16,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import esan.mendoza.impulso.presentation.component.IconPicker
+import esan.mendoza.impulso.utils.DateUtils
 
 @Composable
 fun DialogAddCategory(
     show: Boolean,
     onDismiss: () -> Unit,
-    onAccept: (String, String) -> Unit
+    onAccept: (String, String, String) -> Unit  // Agregamos parámetro para fecha
 ) {
     var nombre by remember { mutableStateOf("") }
     var selectedIcon by remember { mutableStateOf<IconPicker.IconOption?>(null) }
     var showIconPicker by remember { mutableStateOf(false) }
+
+    // Obtener fecha actual usando la nueva utilidad
+    val currentDate = remember {
+        DateUtils.getCurrentDateTimeString()
+    }
 
     if (show) {
         AlertDialog(
@@ -122,7 +128,7 @@ fun DialogAddCategory(
                 Button(
                     onClick = {
                         val iconName = selectedIcon?.name ?: IconPicker.availableIcons[0].name
-                        onAccept(nombre, iconName)
+                        onAccept(nombre, iconName, currentDate)  // Pasar fecha actual
                         // Reset state
                         nombre = ""
                         selectedIcon = null
